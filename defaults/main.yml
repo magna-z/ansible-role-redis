@@ -1,0 +1,5 @@
+---
+redis_docker_image: redis:latest
+
+redis_uid: 6379
+redis_gid: 6379
