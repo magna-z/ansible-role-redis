@@ -25,7 +25,7 @@
     path: "{{ item }}"
     owner: "{{ redis_uid }}"
     group: "{{ redis_gid }}"
-    mode: 0750
+    mode: "0750"
   with_items: [/etc/redis, /var/lib/redis]
 
 - name: ensure config
@@ -34,13 +34,13 @@
     dest: /etc/redis/server.conf
     owner: "{{ redis_uid }}"
     group: "{{ redis_gid }}"
-    mode: 0640
+    mode: "0640"
 
 - name: ensure systemd redis.service
   notify: restart service redis
   ansible.builtin.copy:
     dest: /etc/systemd/system/redis.service
-    mode: 0644
+    mode: "0644"
     content: |
       [Unit]
       Requires=docker.service
@@ -53,7 +53,7 @@
         --rm=true \
         --pid=host \
         --network=host \
-        --stop-timeout=600 \
+        --stop-timeout=300 \
         --workdir=/var/lib/redis \
         --user={{ redis_uid }}:{{ redis_gid }} \
         --volume=/etc/localtime:/etc/localtime:ro \
