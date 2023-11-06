@@ -8,23 +8,25 @@
 - name: ensure group
   ansible.builtin.group:
     name: redis
-    gid: "{{ redis_gid }}"
+    system: true
+  register: _redis_group
 
 - name: ensure user
   ansible.builtin.user:
     name: redis
     group: redis
     shell: /sbin/nologin
-    uid: "{{ redis_uid }}"
     home: /var/lib/redis
     create_home: false
+    system: true
+  register: _redis_user
 
 - name: ensure work directories
   ansible.builtin.file:
     state: directory
     path: "{{ item }}"
-    owner: "{{ redis_uid }}"
-    group: "{{ redis_gid }}"
+    owner: "{{ _redis_user.uid }}"
+    group: "{{ _redis_group.gid }}"
     mode: "0750"
   with_items: [/etc/redis, /var/lib/redis]
 
@@ -32,8 +34,8 @@
   ansible.builtin.copy:
     content: "{{ redis_config }}"
     dest: /etc/redis/server.conf
-    owner: "{{ redis_uid }}"
-    group: "{{ redis_gid }}"
+    owner: "{{ _redis_user.uid }}"
+    group: "{{ _redis_group.gid }}"
     mode: "0640"
 
 - name: ensure systemd redis.service
@@ -55,7 +57,7 @@
         --network=host \
         --stop-timeout=300 \
         --workdir=/var/lib/redis \
-        --user={{ redis_uid }}:{{ redis_gid }} \
+        --user={{ _redis_user.uid }}:{{ _redis_group.gid }} \
         --volume=/etc/localtime:/etc/localtime:ro \
         --volume=/etc/timezone:/etc/timezone:ro \
         --volume=/etc/redis:/etc/redis:rw \
